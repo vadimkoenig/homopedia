@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homopedia — энциклопедия хомяков</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; height: 100vh; background: #0a0a0a; color: #ddd;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .sidebar {
+            width: 280px; background: #000; border-right: 1px solid #222;
+            padding: 20px 0; overflow-y: auto; flex-shrink: 0;
+        }
+        .sidebar-logo {
+            padding: 0 20px 24px; font-size: 1.4rem; font-weight: 600;
+            color: #fff; letter-spacing: 0.5px;
+        }
+        .nav-btn {
+            display: block; width: 100%; padding: 14px 20px;
+            background: transparent; border: none; color: #ccc;
+            text-align: left; font-size: 1rem; cursor: pointer;
+            font-family: inherit; transition: 0.15s; position: relative;
+        }
+        .nav-btn:hover { background: #1a1a1a; color: #fff; }
+        .nav-btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+        .nav-btn .arrow { float: right; font-size: 0.8rem; transition: transform 0.2s; }
+        .nav-btn.expanded .arrow { transform: rotate(90deg); }
+        .submenu { display: none; background: #0d0d0d; }
+        .submenu.open { display: block; }
+        .sub-btn {
+            display: block; width: 100%; padding: 10px 20px 10px 36px;
+            background: transparent; border: none; color: #aaa;
+            text-align: left; font-size: 0.9rem; cursor: pointer; font-family: inherit;
+        }
+        .sub-btn:hover { color: #fff; background: #1a1a1a; }
+        .sub-btn .latin { font-size: 0.8rem; color: #777; margin-left: 6px; font-style: italic; }
+        .group-btn {
+            display: block; width: 100%; padding: 12px 20px 12px 28px;
+            background: transparent; border: none; color: #bbb;
+            text-align: left; font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+        }
+        .group-btn:hover { background: #1a1a1a; color: #fff; }
+        .group-btn .arrow { float: right; font-size: 0.8rem; transition: transform 0.2s; }
+        .group-btn.expanded .arrow { transform: rotate(90deg); }
+        .species-list { display: none; background: #0a0a0a; }
+        .species-list.open { display: block; }
+        .home-section { margin-top: 8px; border-top: 1px solid #222; padding-top: 8px; }
+        .home-label {
+            padding: 8px 20px; font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 1px; color: #555;
+        }
+
+        .main-wrapper { flex: 1; display: flex; overflow-y: auto; }
+        .section-nav {
+            width: 200px; background: #111; border-right: 1px solid #222;
+            padding: 30px 0; flex-shrink: 0; position: sticky; top: 0;
+            height: 100vh; overflow-y: auto;
+        }
+        .section-nav a {
+            display: block; padding: 8px 20px; color: #999;
+            text-decoration: none; font-size: 0.85rem; transition: 0.15s;
+        }
+        .section-nav a:hover { color: #fff; background: #1a1a1a; }
+        .section-nav a.active { color: #fff; background: #222; }
+        .main-content {
+            flex: 1; padding: 40px; background: #0a0a0a; min-width: 0;
+        }
+        .main-content h2 { font-size: 2rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .main-content .latin-name { font-size: 1.2rem; color: #666; font-style: italic; margin-bottom: 32px; }
+        .photo-section {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px; margin-bottom: 40px;
+        }
+        .photo-card {
+            background: #111; border: 1px solid #222; border-radius: 8px; overflow: hidden;
+        }
+        .photo-card img {
+            width: 100%; height: 180px; object-fit: cover;
+            background: #1a1a1a; display: block;
+        }
+        .photo-card .label { padding: 10px 14px; font-size: 0.85rem; color: #999; border-top: 1px solid #222; }
+        .article-section {
+            margin-bottom: 36px; scroll-margin-top: 20px;
+        }
+        .article-section h3 {
+            font-size: 1.4rem; font-weight: 600; color: #ddd;
+            border-bottom: 1px solid #333; padding-bottom: 6px; margin-bottom: 14px;
+        }
+        .article-section p, .article-section ul {
+            color: #bbb; line-height: 1.7; font-size: 0.95rem;
+        }
+        .article-section ul { padding-left: 20px; }
+        .article-section li { margin-bottom: 6px; }
+        .map-section img { max-width: 100%; border: 1px solid #333; border-radius: 4px; margin-top: 10px; }
+        .welcome { color: #888; font-size: 1.1rem; }
+        .welcome strong { color: #fff; }
+        @media (max-width: 900px) {
+            .section-nav { display: none; }
+            .main-content { padding: 20px; }
+            .photo-section { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo">Homopedia</div>
+        <button class="nav-btn" id="btn-wiki">Википедия <span class="arrow">▶</span></button>
+        <div class="submenu" id="sub-wiki"></div>
+        <button class="nav-btn disabled">Содержание <span style="font-size:0.75rem;color:#555;">(в разработке)</span></button>
+        <button class="nav-btn disabled">Болезни <span style="font-size:0.75rem;color:#555;">(в разработке)</span></button>
+    </aside>
+
+    <div class="main-wrapper" id="main-wrapper">
+        <nav class="section-nav" id="section-nav"></nav>
+        <main class="main-content" id="main-content">
+            <div class="welcome"><h2>Добро пожаловать</h2><p>Выберите вид из раздела <strong>Википедия</strong>.</p></div>
+        </main>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════
+        // МАССИВ ВИДОВ С ПОДРОБНЫМИ СЕКЦИЯМИ
+        // ═══════════════════════════════════════════════
+        const speciesData = [
+            {
+                group: 'Настоящие хомяки (Cricetinae)',
+                nameRu: 'Хомяк обыкновенный', nameLat: 'Cricetus cricetus',
+                domestic: false,
+                photos: {
+                    wild: 'images/common_hamster_wild.jpg',
+                    zoo: 'images/common_hamster_zoo.jpg',
+                    home: null
+                },
+                map: 'images/common_hamster_map.png',
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан Карлом Линнеем в 1758 году. Относится к монотипическому роду Cricetus. Ближайший родственник — хомяк южнорусский (Cricetus raddei).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Обитает в степной и лесостепной зонах Евразии от Бельгии до Алтая и Северного Казахстана. Предпочитает чернозёмные почвы, поля зерновых, луга, речные долины и балки, часто селится у людских поселений.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 25–34 см, хвоста 3–8 см, масса в среднем 700 г. Мех густой, окрас контрастный: спина рыжевато-бурая, брюхо чёрное с белыми пятнами на боках. Морда умеренной длины, защёчные мешки вмещают до 50 г пищи.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Строго одиночный территориальный вид. Активен ночью и в сумерках. Роет сложные норы глубиной до 2,5 м и длиной до 8 м с гнездовой камерой и кладовыми. Запасает до 15–20 кг зерна. Впадает в спячку с октября по март.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Всеяден. Основа рациона — семена злаков, бобовые, корнеплоды, зелень. Дополнительно поедает насекомых, моллюсков, иногда мелких позвоночных.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Сезон размножения с апреля по август. Беременность 18–20 дней. В помёте 4–15 детёнышей (обычно 8–10). За сезон самка приносит 2–3 выводка. Половая зрелость наступает в 2 месяца.</p>' },
+                    { id: 'status', title: 'Статус сохранения', content: '<p>Красный список МСОП: вид на грани исчезновения (CR). Основные угрозы: распашка земель, применение пестицидов, прямое преследование. В ряде стран Европы созданы программы реинтродукции.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Требует очень просторного вольера (минимум 2 м²) с толстым слоем грунта. Агрессивен, не подходит как домашний питомец. В зоопарках содержится редко.</p>' },
+                    { id: 'facts', title: 'Интересные факты', content: '<ul><li>В одной норе находили запасы более 80 кг зерна.</li><li>Может переплывать небольшие реки.</li><li>При опасности громко кричит и стучит зубами.</li></ul>' }
+                ]
+            },
+            {
+                group: 'Настоящие хомяки (Cricetinae)',
+                nameRu: 'Хомяк сирийский', nameLat: 'Mesocricetus auratus',
+                domestic: true,
+                photos: {
+                    wild: 'images/syrian_wild.jpg',
+                    zoo: 'images/syrian_zoo.jpg',
+                    home: 'images/syrian_home.jpg'
+                },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1839 году Уотерхаусом. Относится к роду средних хомяков (Mesocricetus). Все одомашненные особи происходят от одной самки и трёх её детёнышей, пойманных в 1930 году в Сирии.</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Эндемик плато Алеппо в Сирии и южной Турции. Обитает на сухих каменистых склонах с кустарниковой растительностью. Ареал крайне ограничен.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 12–18 см, хвост 13–21 мм, масса 100–175 г. Природный окрас — золотистый с серовато-белым брюхом. Селекционно выведены десятки окрасов: длинношёрстный, сатин, рекс, чёрный, белый, черепаховый и др. Глаза чёрные, за исключением альбиносных форм.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Строго одиночный, территориальный. Активен ночью. В природе выкапывает норы до 2 м глубиной. В неволе требует клетку площадью не менее 0,24 м² (60×40 см) и колесо диаметром от 28 см. При совместном содержании взрослые особи дерутся до смерти.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Зерноядный вид. Основу рациона составляет зерносмесь без сахара и красителей, с добавлением сушёных овощей, зелени, насекомых. Важно ограничивать долю жиров и простых углеводов во избежание ожирения и диабета.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Беременность 16–18 дней. В помёте 6–12 детёнышей. Самка выкармливает их до 21–28 дней. Самца отсаживают сразу после спаривания. Половая зрелость наступает в возрасте 4–5 недель, но спаривать рекомендуется с 3–4 месяцев.</p>' },
+                    { id: 'health', title: 'Здоровье и болезни', content: '<p>Предрасположен к ожирению, сахарному диабету, опухолям (особенно надпочечников). Частые инфекции: пролиферативный илеит (мокрый хвост), респираторные заболевания. Средняя продолжительность жизни 2–3 года.</p>' },
+                    { id: 'genetics', title: 'Генетика и селекция', content: '<p>Кариотип 2n=44. Известно множество мутаций: длинная шерсть (Llglg), сатин (Satin), рекс (Rex), чёрный окрас (aa), коричный (pp), альбинос (cc) и др. На основе этих генов получено более 40 комбинаций окрасов.</p>' },
+                    { id: 'facts', title: 'Интересные факты', content: '<ul><li>Все домашние сирийские хомяки — потомки одной самки и трёх её детёнышей, пойманных в 1930 году.</li><li>Защёчные мешки могут растягиваться до плеч.</li><li>В лабораториях используется как модель для изучения диабета и старения.</li></ul>' }
+                ]
+            },
+            {
+                group: 'Настоящие хомяки (Cricetinae)',
+                nameRu: 'Хомяк турецкий', nameLat: 'Mesocricetus brandti',
+                domestic: false,
+                photos: { wild: 'images/brandti_wild.jpg', zoo: null, home: null },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1898 году Нерингом. Относится к роду средних хомяков (Mesocricetus). Также известен как хомяк Брандта или закавказский хомяк.</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Горные степи Турции, Армении, Грузии, Ирана. Предпочитает сухие каменистые склоны и участки с кустарниками на высотах 300–3000 м.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела до 150 мм, хвоста до 39 мм, вес 42–296 г. Окрас верха буровато-палевый, брюхо от белого до пепельно-серого, на груди между передними лапами чёрное пятно. Похож на сирийского хомяка, но крупнее и темнее.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ведёт преимущественно ночной образ жизни. По натуре одиночка. На зиму залегает в спячку в конце октября — начале декабря, пробуждается в марте-апреле. Продолжительность жизни в природе около 2 лет.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается семенами, зелёными частями растений, корнеплодами, насекомыми.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Беременность около 17–18 дней. В помёте 3–10 детёнышей. Сезон размножения с весны до осени.</p>' },
+                    { id: 'status', title: 'Статус сохранения', content: '<p>Вид недостаточно изучен, но ареал сокращается из-за распашки земель.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Содержится редко. Требует условий, сходных с сирийским хомяком.</p>' }
+                ]
+            },
+            {
+                group: 'Настоящие хомяки (Cricetinae)',
+                nameRu: 'Хомяк румынский', nameLat: 'Mesocricetus newtoni',
+                domestic: false,
+                photos: { wild: 'images/newtoni_wild.jpg', zoo: null, home: null },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1898 году Нерингом. Относится к роду средних хомяков (Mesocricetus). Также известен как черногрудый золотистый хомяк, добруджанский хомяк или ньютонов хомяк.</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Эндемик низменностей северной Болгарии и Румынии. Населяет сухие степи, каменистые склоны, поля люцерны и пшеницы, виноградники на высотах до 460 м.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 135–160 мм, хвоста 17–24 мм, вес 60–130 г. Спина светло-серо-коричневая, брюхо белое. Общая форма тела как у других представителей рода Mesocricetus.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ведёт одиночный, сумеречный и ночной образ жизни. Создаёт норы с несколькими входами, спальней и кладовой. Гнездовая камера располагается на глубине около 50–60 см.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Вид всеядный, рацион состоит из зелёных частей растений, семян, плодов, небольших позвоночных и беспозвоночных.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Сезон размножения с апреля по август. Беременность около 18 дней. В помёте 4–10 детёнышей.</p>' },
+                    { id: 'status', title: 'Статус сохранения', content: '<p>Охраняется на национальном уровне. Находится под угрозой из-за сельскохозяйственного освоения земель.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Данных о содержании в неволе мало.</p>' }
+                ]
+            },
+            {
+                group: 'Средние хомяки (Allocricetulus)',
+                nameRu: 'Хомяк Эверсмана', nameLat: 'Allocricetulus eversmanni',
+                domestic: false,
+                photos: { wild: 'images/eversmanni_wild.jpg', zoo: null, home: null },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1859 году Брандтом. Относится к роду средних хомяков (Allocricetulus). Видовое название дано в честь Эдуарда Александровича Эверсмана (1794–1860).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Степи и полупустыни от Нижней Волги до Алтая, Казахстан. Предпочитает целинные ковыльные степи, но также встречается на полях, выгонах, бахчах и в поселениях человека.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 136–160 мм, хвоста 20–28 мм. Мелкий грызун, размером заметно крупнее мыши. Лапы короткие, морда слабоприострённая, уши небольшие.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ведёт преимущественно сумеречный и ночной образ жизни. Живёт в сравнительно просто устроенных норах глубиной 20–30 см. Зиму проводит в спячке.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается всходами и зерном пшеницы, ржи, овса, а также семенами диких растений и насекомыми.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Сезон размножения с апреля по август. За лето 2–3 помёта по 4–8 детёнышей.</p>' },
+                    { id: 'status', title: 'Статус сохранения', content: '<p>В ряде регионов вид занесён в Красную книгу.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Содержится редко. Требует просторного вольера с толстым слоем субстрата.</p>' }
+                ]
+            },
+            {
+                group: 'Средние хомяки (Allocricetulus)',
+                nameRu: 'Хомяк монгольский', nameLat: 'Allocricetulus curtatus',
+                domestic: false,
+                photos: { wild: 'images/curtatus_wild.jpg', zoo: 'images/curtatus_zoo.jpg', home: null },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1925 году Алленом. Относится к роду средних хомяков (Allocricetulus). Похож на хомячка Эверсманна, но немного мельче и светлее.</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Полупустыни Монголии и Северного Китая. Предпочитает гравийные равнины и закреплённые пески.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 98–150 мм, хвоста 15–21 мм. Окраска очень светлая, брюхо, нижняя поверхность хвоста и лапы белые (тёмного пятна на груди нет). Волосяной покров ровный.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Активность в вечернее и ночное время. Живёт в норах.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается семенами злаков, солянок, караганы, мелкими насекомыми, иногда пресмыкающимися.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Сезон размножения в апреле. За лето 2–3 помёта по 4–9 детёнышей.</p>' },
+                    { id: 'status', title: 'Статус сохранения', content: '<p>Вид недостаточно изучен.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Данных о содержании в неволе мало.</p>' }
+                ]
+            },
+            {
+                group: 'Карликовые хомяки (Phodopus)',
+                nameRu: 'Хомяк джунгарский', nameLat: 'Phodopus sungorus',
+                domestic: true,
+                photos: { wild: 'images/sungorus_wild.jpg', zoo: 'images/sungorus_zoo.jpg', home: 'images/sungorus_home.jpg' },
+                map: 'images/sungorus_map.png',
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1773 году Палласом. Относится к роду мохноногих хомячков (Phodopus).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Степи Западной Сибири, восточного Казахстана, Забайкалья. Населяет целинные степи, залежи, пастбища, речные долины. Живёт в норах глубиной до 1 м, часто занимает норы других грызунов.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела до 10 см, масса 25–65 г. Шерсть густая, покрывает также подошвы ног. Характерная тёмная полоса на спине, очень короткий хвост. Окрас буровато-серый, зимой светлеет до белого.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ведёт одиночный образ жизни, активен в сумерках и ночью. В природе живёт около 12 месяцев, в неволе до 4 лет.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается семенами, зелёными частями растений, насекомыми.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Беременность 18–22 дня. В помёте 2–11 детёнышей (обычно 4–6). Может приносить потомство круглый год в неволе.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Популярное домашнее животное. Требует просторной клетки с колесом, укрытиями, минеральным камнем. Склонен к диабету при неправильном кормлении. Продолжительность жизни в среднем 2,5 года.</p>' }
+                ]
+            },
+            {
+                group: 'Карликовые хомяки (Phodopus)',
+                nameRu: 'Хомяк Кэмпбелла', nameLat: 'Phodopus campbelli',
+                domestic: true,
+                photos: { wild: 'images/campbelli_wild.jpg', zoo: null, home: 'images/campbelli_home.jpg' },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1905 году Томасом, назван в честь Чарльза Уильяма Кэмпбелла. Относится к роду мохноногих хомячков (Phodopus).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Сухие степи, полупустыни и пустыни Тувы, Бурятии, Забайкальского края, Казахстана, Монголии, Северного Китая. Предпочитает разреженную растительность с куртинами караганы, полыней.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 65–100 мм, хвоста 8–15 мм. Вдоль спины тянется чёрная полоса. Буроватая или серо-охристая окраска меха спины тремя угловатыми выступами вдаётся в светлую окраску боков. От джунгарского хомяка отличается более светлым мехом и менее выраженной полосой на спине.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ночное животное. В природе живёт небольшими группами или парами с чётко выраженным вожаком. Территориален по отношению к другим хомячкам своего вида.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается семенами, зелёными частями растений, насекомыми.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Беременность 18–20 дней. В помёте 3–8 детёнышей. Сезон размножения с апреля по сентябрь.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Популярное домашнее животное. Склонен к диабету. Рекомендуется содержание однополыми группами, сформированными в молодом возрасте. Продолжительность жизни 1,5–2,5 года.</p>' }
+                ]
+            },
+            {
+                group: 'Карликовые хомяки (Phodopus)',
+                nameRu: 'Хомяк Роборовского', nameLat: 'Phodopus roborovskii',
+                domestic: true,
+                photos: { wild: 'images/roborovskii_wild.jpg', zoo: null, home: 'images/roborovskii_home.jpg' },
+                map: 'images/roborovskii_map.png',
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1894 году Сатуниным. Назван в честь русского натуралиста В. И. Роборовского. Относится к роду мохноногих хомячков (Phodopus).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Песчаные пустыни и полупустыни Монголии, Китая, прилегающих районов Тувы и Зайсанской котловины. Предпочитает слабозакреплённые пески, поросшие караганой, избегает песчаных дюн и глинистых участков.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 4–5 см, масса 20–30 г. Голова и спина песочно-золотого цвета, живот белый. Характерные белые пятна, похожие на брови, отсутствие спинной полосы. Очень короткий хвостик, который практически незаметен.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Самый быстрый и подвижный из карликовых хомяков. Может жить парами или небольшими группами. Активен в сумерках и ночью.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается преимущественно семенами, насекомыми, зелёными частями растений.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Беременность 20–22 дня. В помёте 3–6 детёнышей. Детёныши рождаются слепыми и голыми, открывают глаза на 12–14 день.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Рекомендуется содержание однополыми группами в просторных вольерах с толстым слоем песка. Очень быстры, легко ускользают из рук. Продолжительность жизни 2–3 года.</p>' }
+                ]
+            },
+            {
+                group: 'Серые хомячки (Cricetulus)',
+                nameRu: 'Хомячок китайский', nameLat: 'Cricetulus griseus',
+                domestic: false,
+                photos: { wild: 'images/griseus_wild.jpg', zoo: null, home: null },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1867 году Милн-Эдвардсом. Относится к роду серых хомячков (Cricetulus). Близок к барабинскому хомячку (Cricetulus barabensis).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Пустыни северного Китая и Монголии. Живёт в системах нор и туннелей с несколькими входами и отдельными камерами.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 82–127 мм, хвоста 20–33 мм, масса 30–45 г. Тело стройное, хвост длиннее, чем у других хомяков. Дикий окрас — коричневый с чёрной полосой вдоль спины и беловатым брюхом.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ведёт ночной образ жизни. Хорошо лазает благодаря цепкому хвосту, ведёт полудревесный образ жизни.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается семенами, зелёными частями растений, насекомыми.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Беременность 20–21 день. В помёте 4–6 детёнышей.</p>' },
+                    { id: 'science', title: 'Использование в науке', content: '<p>Широко используется как лабораторное животное, особенно в биотехнологии (клетки яичников китайского хомячка — линия CHO).</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Содержится как домашнее животное относительно редко. Клетка должна быть с частыми прутьями, так как зверёк может пролезть сквозь широкие промежутки. Продолжительность жизни 2–3 года.</p>' }
+                ]
+            },
+            {
+                group: 'Серые хомячки (Cricetulus)',
+                nameRu: 'Хомячок длиннохвостый', nameLat: 'Cricetulus longicaudatus',
+                domestic: false,
+                photos: { wild: 'images/longicaudatus_wild.jpg', zoo: null, home: null },
+                map: null,
+                sections: [
+                    { id: 'systematics', title: 'Систематика', content: '<p>Вид описан в 1867 году Милн-Эдвардсом. Относится к роду серых хомячков (Cricetulus).</p>' },
+                    { id: 'habitat', title: 'Ареал и среда обитания', content: '<p>Горные степи Тувы, Саян, Юго-Западного Забайкалья, Монголии, Китая, Казахстана. Населяет почти исключительно каменистые склоны с выходами коренных пород, осыпи, скалы.</p>' },
+                    { id: 'appearance', title: 'Внешний вид', content: '<p>Длина тела 90–135 мм, хвоста 33–46 мм (не менее трети длины тела). Вес 15–50 г. Морда острая, уши довольно большие, округлые. Окрас спины от серой до тёмно-серой, хвост двухцветный.</p>' },
+                    { id: 'behavior', title: 'Образ жизни и поведение', content: '<p>Ведёт ночной образ жизни. Строит неглубокие туннели и норы под валунами, создавая камеры для хранения запасов.</p>' },
+                    { id: 'diet', title: 'Питание', content: '<p>Питается семенами и насекомыми. Запасает пищу на зиму.</p>' },
+                    { id: 'reproduction', title: 'Размножение', content: '<p>Данные о размножении недостаточны.</p>' },
+                    { id: 'status', title: 'Статус сохранения', content: '<p>Образ жизни почти не изучен.</p>' },
+                    { id: 'captivity', title: 'Содержание в неволе', content: '<p>Данных о содержании в неволе нет.</p>' }
+                ]
+            }
+        ];
+
+        // ========== ГЕНЕРАЦИЯ МЕНЮ ==========
+        const subWiki = document.getElementById('sub-wiki');
+        const btnWiki = document.getElementById('btn-wiki');
+        const mainContent = document.getElementById('main-content');
+        const sectionNav = document.getElementById('section-nav');
+
+        const groups = {};
+        speciesData.forEach(s => {
+            if (!groups[s.group]) groups[s.group] = [];
+            groups[s.group].push(s);
+        });
+
+        for (const [groupName, spList] of Object.entries(groups)) {
+            const groupBtn = document.createElement('button');
+            groupBtn.className = 'group-btn';
+            groupBtn.innerHTML = `${groupName} <span class="arrow">▶</span>`;
+            const speciesListDiv = document.createElement('div');
+            speciesListDiv.className = 'species-list';
+            spList.forEach(sp => {
+                const btn = document.createElement('button');
+                btn.className = 'sub-btn';
+                btn.innerHTML = `${sp.nameRu} <span class="latin">${sp.nameLat}</span>`;
+                btn.addEventListener('click', () => showSpecies(sp));
+                speciesListDiv.appendChild(btn);
+            });
+            groupBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speciesListDiv.classList.toggle('open');
+                groupBtn.classList.toggle('expanded');
+            });
+            subWiki.appendChild(groupBtn);
+            subWiki.appendChild(speciesListDiv);
+        }
+
+        const homeDiv = document.createElement('div');
+        homeDiv.className = 'home-section';
+        const homeLab = document.createElement('div');
+        homeLab.className = 'home-label';
+        homeLab.textContent = 'Домашние хомяки';
+        homeDiv.appendChild(homeLab);
+        speciesData.filter(s => s.domestic).forEach(sp => {
+            const btn = document.createElement('button');
+            btn.className = 'sub-btn';
+            btn.innerHTML = `${sp.nameRu} <span class="latin">${sp.nameLat}</span>`;
+            btn.addEventListener('click', () => showSpecies(sp));
+            homeDiv.appendChild(btn);
+        });
+        subWiki.appendChild(homeDiv);
+
+        btnWiki.addEventListener('click', () => {
+            subWiki.classList.toggle('open');
+            btnWiki.classList.toggle('expanded');
+        });
+
+        function showSpecies(sp) {
+            const imgPlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="200" fill="%231a1a1a"%3E%3Crect width="400" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-size="16"%3EФото появится позже%3C/text%3E%3C/svg%3E';
+            const wildImg = sp.photos.wild || imgPlaceholder;
+            const zooImg = sp.photos.zoo || imgPlaceholder;
+            const homeImg = sp.photos.home || imgPlaceholder;
+
+            let navHtml = '';
+            let contentHtml = '';
+            if (sp.sections) {
+                sp.sections.forEach(sec => {
+                    navHtml += `<a href="#${sec.id}" data-target="${sec.id}">${sec.title}</a>`;
+                    contentHtml += `<div class="article-section" id="${sec.id}"><h3>${sec.title}</h3>${sec.content}</div>`;
+                });
+            }
+
+            let mapHtml = '';
+            if (sp.map) {
+                mapHtml = `<div class="article-section" id="map"><h3>Ареал обитания (карта)</h3><div class="map-section"><img src="${sp.map}" alt="Карта ареала"></div></div>`;
+                navHtml += `<a href="#map" data-target="map">Карта ареала</a>`;
+                contentHtml += mapHtml;
+            }
+
+            mainContent.innerHTML = `
+                <h2>${sp.nameRu}</h2>
+                <div class="latin-name">${sp.nameLat}</div>
+                <div class="photo-section">
+                    <div class="photo-card"><img src="${wildImg}" alt="В дикой природе"><div class="label">В дикой природе</div></div>
+                    <div class="photo-card"><img src="${zooImg}" alt="В зоопарках"><div class="label">В зоопарках</div></div>
+                    <div class="photo-card"><img src="${homeImg}" alt="Дома"><div class="label">Дома</div></div>
+                </div>
+                ${contentHtml}
+            `;
+
+            sectionNav.innerHTML = navHtml;
+            sectionNav.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.getElementById(this.getAttribute('data-target'));
+                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+        }
+    </script>
+</body>
+</html>
