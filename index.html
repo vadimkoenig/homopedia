@@ -13,6 +13,7 @@
         .sidebar {
             width: 280px; background: #000; border-right: 1px solid #222;
             padding: 20px 0; overflow-y: auto; flex-shrink: 0;
+            position: relative;
         }
         .sidebar-logo {
             padding: 0 20px 24px; font-size: 1.4rem; font-weight: 600;
@@ -98,15 +99,53 @@
         .map-section img { max-width: 100%; border: 1px solid #333; border-radius: 4px; margin-top: 10px; }
         .welcome { color: #888; font-size: 1.1rem; }
         .welcome strong { color: #fff; }
-        @media (max-width: 900px) {
+
+        /* ---- Кнопка-гамбургер (скрыта на больших экранах) ---- */
+        .menu-toggle { display: none; }
+
+        /* ---- Адаптив (мобильные) ---- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 50px;
+                overflow: hidden;
+                transition: max-height 0.3s;
+                border-right: none;
+                border-bottom: 1px solid #222;
+            }
+            .sidebar.open {
+                max-height: 100vh;
+                overflow-y: auto;
+            }
+            .sidebar-logo {
+                display: inline-block;
+                padding: 12px 20px;
+                font-size: 1.2rem;
+            }
+            .menu-toggle {
+                display: block;
+                position: absolute;
+                top: 10px;
+                right: 20px;
+                background: transparent;
+                border: 1px solid #555;
+                color: #ccc;
+                font-size: 1.2rem;
+                padding: 6px 12px;
+                cursor: pointer;
+                z-index: 10;
+            }
+            .main-wrapper { flex: 1; }
             .section-nav { display: none; }
             .main-content { padding: 20px; }
-            .photo-section { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <aside class="sidebar">
+        <button class="menu-toggle" id="menu-toggle">Меню</button>
         <div class="sidebar-logo">Homopedia</div>
         <button class="nav-btn" id="btn-wiki">Википедия <span class="arrow">▶</span></button>
         <div class="submenu" id="sub-wiki"></div>
@@ -416,6 +455,16 @@
                     const target = document.getElementById(this.getAttribute('data-target'));
                     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
+            });
+        }
+
+        // ---------- Мобильное меню ----------
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        if (menuToggle && sidebar) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                menuToggle.textContent = sidebar.classList.contains('open') ? 'Закрыть' : 'Меню';
             });
         }
     </script>
