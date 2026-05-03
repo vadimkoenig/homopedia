@@ -51,14 +51,38 @@
         .toggle-view button { background: transparent; border: 1px solid #555; color: #ccc; padding: 8px 20px; cursor: pointer; font-family: inherit; font-size: 0.9rem; border-radius: 4px; transition: 0.15s; }
         .toggle-view button:hover { background: #222; color: #fff; }
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; max-height: 50px; overflow: hidden; transition: max-height 0.3s; border-right: none; border-bottom: 1px solid #222; }
-            .sidebar.open { max-height: 100vh; overflow-y: auto; }
-            .sidebar-logo { display: inline-block; padding: 12px 20px; font-size: 1.2rem; }
-            .main-wrapper { flex: 1; }
-            .section-nav { display: none; }
-            .main-content { padding: 20px; }
-        }
+    body {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: none;
+        overflow-y: visible;
+        border-right: none;
+        border-bottom: 1px solid #222;
+        padding: 10px 0;
+        position: static;
+    }
+    .sidebar-logo {
+        padding: 0 16px 8px;
+        font-size: 1.2rem;
+    }
+    .main-wrapper {
+        flex: 1;
+        flex-direction: column;
+    }
+    .section-nav {
+        display: none;   /* навигацию по разделам статьи на маленьком экране прячем */
+    }
+    .main-content {
+        padding: 20px 16px;
+    }
+    /* кнопку меню не показываем */
+    .menu-toggle {
+        display: none !important;
+    }
+}
     </style>
 </head>
 <body>
