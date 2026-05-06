@@ -117,13 +117,20 @@
             .section-nav { display: none; }
             .main-content { padding: 20px 16px; }
         }
-                :root {
+   
+        :root {
             --font-scale: 1;
         }
         body {
-            font-size: calc(16px * var(--font-scale));
+            font-size: calc(1rem * var(--font-scale));
         }
-
+        .main-content p,
+        .main-content li,
+        .article-section p,
+        .article-section ul,
+        .article-section li {
+            font-size: calc(1rem * var(--font-scale));
+        }
         /* Плавающая кнопка настроек */
         .settings-float {
             position: fixed;
