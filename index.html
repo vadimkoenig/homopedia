@@ -117,26 +117,28 @@
             .section-nav { display: none; }
             .main-content { padding: 20px 16px; }
         }
-    </style>
+  </style>
 </head>
 <body>
+    <div class="settings-float">
+        <button class="nav-btn settings-toggle" id="btn-settings">⚙️</button>
+        <div class="submenu settings-dropdown" id="sub-settings"></div>
+    </div>
     <aside class="sidebar">
         <div class="sidebar-logo">Homopedia</div>
         <button class="nav-btn" id="btn-wiki">Википедия <span class="arrow">▶</span></button>
         <div class="submenu" id="sub-wiki"></div>
-      <button class="nav-btn" id="btn-care">Содержание <span class="arrow">▶</span></button>
-<div class="submenu" id="sub-care"></div>
+        <button class="nav-btn" id="btn-care">Содержание <span class="arrow">▶</span></button>
+        <div class="submenu" id="sub-care"></div>
         <button class="nav-btn disabled">Болезни <span style="font-size:0.75rem;color:#555;">(в разработке)</span></button>
     </aside>
-<button class="nav-btn" id="btn-settings">Настройки <span class="arrow">▶</span></button>
-<div class="submenu" id="sub-settings"></div>
+
     <div class="main-wrapper" id="main-wrapper">
         <nav class="section-nav" id="section-nav"></nav>
         <main class="main-content" id="main-content">
             <div class="welcome"><h2>Добро пожаловать</h2><p>Выберите вид из раздела <strong>Википедия</strong>.</p></div>
         </main>
     </div>
-
     <script>
         const speciesData = [
             // 1. Хомяк обыкновенный
