@@ -641,7 +641,7 @@
             sectionNav.innerHTML = navHtml;
             sectionNav.querySelectorAll('a').forEach(link => link.addEventListener('click', function(e) { e.preventDefault(); const target = document.getElementById(this.getAttribute('data-target')); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
            document.getElementById('toggle-view-btn').addEventListener('click', () => { currentView = currentView === 'full' ? 'short' : 'full'; renderContent(); });
-            }
+            
 // ========== РАЗДЕЛ «СОДЕРЖАНИЕ» ==========
 document.addEventListener('DOMContentLoaded', function() {
     const careData = [
