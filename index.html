@@ -640,8 +640,11 @@
             mainContent.innerHTML = `<h2>${sp.nameRu}</h2><div class="latin-name">${sp.nameLat}</div><div class="toggle-view"><button id="toggle-view-btn">${toggleText}</button></div><div class="photo-section"><div class="photo-card"><img src="${wildImg}" alt="В дикой природе"><div class="label">В дикой природе</div></div><div class="photo-card"><img src="${zooImg}" alt="В зоопарках"><div class="label">В зоопарках</div></div><div class="photo-card"><img src="${homeImg}" alt="Дома"><div class="label">Дома</div></div></div>${contentHtml}`;
             sectionNav.innerHTML = navHtml;
             sectionNav.querySelectorAll('a').forEach(link => link.addEventListener('click', function(e) { e.preventDefault(); const target = document.getElementById(this.getAttribute('data-target')); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
-           document.getElementById('toggle-view-btn').addEventListener('click', () => { currentView = currentView === 'full' ? 'short' : 'full'; renderContent(); });
-            
+           document.getElementById('toggle-view-btn').addEventListener('click', () => {
+    currentView = currentView === 'full' ? 'short' : 'full';
+    renderContent();
+});
+});
 // ========== РАЗДЕЛ «СОДЕРЖАНИЕ» ==========
 document.addEventListener('DOMContentLoaded', function() {
     const careData = [
